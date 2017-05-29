@@ -30,6 +30,7 @@
 					// rest styling
 					$('h1').text('Add User');
 					//$('input.num').val('');
+					$('tr[num='+editingNum+']').fadeTo(500, 1);
 					editingNum = -1;
 					$('input[type="submit"]').val('Add User');
 					$('input[type!="submit"]').css('color','black');
@@ -133,6 +134,7 @@
 					//nonBlank = getNonBlank();
 					if(editingNum != -1){
 						if(!confirm('You have unsaved changes. Are you sure you would like to proceed?')){
+							resetFromEdit();
 							return;
 						}
 					}
@@ -143,7 +145,6 @@
 					var uid = $(this).parent().parent().attr('num');
 					console.log("editing row",uid);
 					row = $('tr[num='+uid+']');
-					//row.css('color', 'gray');
 					row.fadeTo(1000,.4);
 					$('input[type!="submit"]').css('color', 'blue');
 					for(i=0;i<ncols;i++){
@@ -188,7 +189,9 @@
 
 						// rest styling
 						$('h1').text('Add User');
-						$('input.num').val('');
+						//$('input.num').val('');
+						$('tr[num='+editingNum+']').fadeTo(500, 1);
+						editingNum= -1;
 						$('input[type="submit"]').val('Add User');
 						$('input[type!="submit"]').css('color','black');
 					}
