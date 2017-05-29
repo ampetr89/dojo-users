@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="users" content="">
+		<title>Users</title>
+		<link rel="stylesheet" href="style.css">
+
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">
+		</script> 
+
+		<script type="text/javascript">
+			$(document).ready(function(){
+				console.log('page loaded')
+
+				var colHeaders = [];
+				var tds = $('thead > tr').children();
+				var ncols = tds.length;
+				for(var i=0; i<ncols;i++){
+					if(tds[i].className){ // ignore the edit and delete cols
+						colHeaders.push(tds[i].className);
+					}
+				}
+
+				var nextNum  = 0;
+				var editingNum  = -1;
+				editImg = '<img src="./edit.png" class="edit">';
+				deleteImg = '<img src="./trashcan.png" class="delete">';
+				
+				function resetFromEdit(){
+					// rest styling
+					$('h1').text('Add User');
+					//$('input.num').val('');
+					editingNum = -1;
+					$('input[type="submit"]').val('Add User');
+					$('input[type!="submit"]').css('color','black');
+					$('#cancel').fadeOut();
+				}
+				// submit.click function
+				$('input[type="submit"').click(function(){
+					console.log('ed',editingNum);
+					//var uid = $('input.num').val();
+					if(editingNum==-1){
+						uid = nextNum;
+						nextNum ++;
+						formDo = 'append';
+					}else{
+						uid = editingNum;
+						formDo = 'edit';
+					}
+					console.log(formDo+'ing user',uid);
+
+					if(formDo=='append'){
+						$('tbody').append('<tr style="display:none" num='+uid+'></tr>');
+					}
+					row = $('tr[num='+uid+']');
+
+					if(formDo=='append'){
+						for(i=0; i<ncols; i++){
+							row.append('<td class="'+colHeaders[i]+'"></td>');
+						}
+					}
+
+					excludeClasses = ['edit', 'delete'];
+					for(var i=0; i<ncols; i++){
+						// first check all the input
+						input = $('input.'+colHeaders[i]);
+						if(excludeClasses.indexOf(colHeaders[i]) > -1){
+							continue;
+						}
+						
+						val = input.val();
+						if(typeof(val) != 'undefined'){
+							// test if valid format
+							if(!input.is(':valid')){
+								//console.log('format invalid');
+								return;
+							};
+						}else{
+							val='';
+							//console.log('value is undefined');
+						}
+						
+						if(input.attr('required') & val.length==0){
+							input.css('outline','red 2px solid');
+							input.attr('placeholder','Value required');
+							alert('Please fill out required fields.');
+							return;
+						}
+
+						// update the td with the value from the form
+						row.children('.'+colHeaders[i]).text(val);
+					
+					}
+					
+					if(formDo=='append'){
+						row.children('.edit').html(editImg);
+						row.children('.delete').html(deleteImg);
+
+						row.fadeIn(500); // slideDown doesnt work for trs
+					}else{
+						// do an animation on edited row
+						row.fadeTo(1000, 1);
+						
+						resetFromEdit();
+					}
+					
+
+				}) // end submit.click function
+
+				$('form').submit(function(){
+					$('form').trigger('reset');
+					return false;
+				});
+
+
+
+				$(document).on('hover', 'img', 
+					function(){
+						console.log('hovering');
+						$(this).css('outline', 'black 1px solid');
+					}
+				);
+
+				function getNonBlank(){
+					nonBlank = $('input[type!="submit"]').filter(function(){
+						return $(this).val() != '';
+					})
+					return nonBlank;
+				}
+
+				$('tbody').on('click', 'img.edit', function(){
+					// first check if currrently editing anything
+					//nonBlank = getNonBlank();
+					if(editingNum != -1){
+						if(!confirm('You have unsaved changes. Are you sure you would like to proceed?')){
+							return;
+						}
+					}
+
+					$('#cancel').fadeIn();
+
+					//console.log('edit button clicked');
+					var uid = $(this).parent().parent().attr('num');
+					console.log("editing row",uid);
+					row = $('tr[num='+uid+']');
+					//row.css('color', 'gray');
+					row.fadeTo(1000,.4);
+					$('input[type!="submit"]').css('color', 'blue');
+					for(i=0;i<ncols;i++){
+						cls = colHeaders[i];
+						// copy the value from the table back into the form
+						val = row.children('td.'+cls).text();
+						$('input.'+cls).val(val);
+						
+					}
+					$('h1').text('Update User');
+					$('input[type="submit"').val('Update User');
+					//$('input.num').val(uid);
+					editingNum = uid;
+				})
+
+				$('tbody').on('click', 'img.delete', function(){
+					/*nonBlank = getNonBlank();
+					if(nonBlank.length != 0){
+						alert('You are currently editing a user. Please finish or cancel editing');
+						return;
+					}*/
+					if(confirm('Are you sure you would like to remove this user?')){
+						var uid = $(this).parent().parent().attr('num');
+						console.log("removing user",uid);
+						$('tr[num='+uid+']').fadeOut(600, function(){
+							$(this).remove()});
+
+						if(uid == editingNum){
+							//if you are editing a user and then delete that user
+							$('form').trigger('reset');
+							resetFromEdit();
+						}
+
+					}
+				})
+
+				$('#cancel').click(function(){
+					//console.log('cancel clicked');
+					if(confirm('Are you sure you want to cancel editing this user? Changes will not be saved.')){
+						// clear the form
+						$('form').trigger('reset');
+
+						// rest styling
+						$('h1').text('Add User');
+						$('input.num').val('');
+						$('input[type="submit"]').val('Add User');
+						$('input[type!="submit"]').css('color','black');
+					}
+				})
+
+			})
+		</script>
+	</head>
+
+	<body>
+
+	<header></header>
+
+	<main>
+		<table>
+		<thead>
+			<tr>	
+				<td class="first-name">First Name</td>
+				<td class="last-name">Last Name</td>
+				<td class="email">Email Address</td>
+				<td class="contact">Contact #</td>
+				<td class="edit"></td>
+				<td class="delete"></td>
+				</tr>
+		</thead>
+		<tbody>
+		</tbody>
+		</table>
+
+
+		<h1>Add User</h1>
+		<div id="form-wrapper">
+			
+			<hr>
+				<form action="">
+					<input type="hidden" class="num"> &nbsp;<br> <!--fake input of row Num-->
+					First Name: <input type="text" class="first-name"> &nbsp;<br>
+					Last Name: <input type="text" class="last-name"> &nbsp;<br>
+					Email Address: <input type="email" class="email" required>*<br>
+					Contact No.: <input type="tel" class="contact"> &nbsp;<br>
+					<input type="submit" value="Add User">&nbsp;
+					<a href="#" id='cancel' style="display: none">Cancel</p>
+				</form>
+		</div>
+	</main>
+
+	<footer></footer>
+
+
+
+	</body>
+
+
+</html>
